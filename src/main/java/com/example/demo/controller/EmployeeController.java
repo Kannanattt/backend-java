@@ -18,13 +18,25 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.model.Employee;
+import com.example.demo.model.Role;
+import com.example.demo.model.Skill;
 import com.example.demo.repository.EmployeeRepository;
+import com.example.demo.repository.RoleRepository;
+import com.example.demo.repository.SkillRepository;
 
 @RestController
 public class EmployeeController {
 	
 	@Autowired
 	EmployeeRepository employeeRepository;
+	
+	@Autowired
+	RoleRepository roleRepository;
+	
+	@Autowired
+	SkillRepository skillRepository;
+	
+	
 	
 	private List<Employee> data = new ArrayList<Employee>();
 	
@@ -39,17 +51,23 @@ public class EmployeeController {
 	}
 	@PostMapping("/employee")
 	public ResponseEntity<Object> addEmployee(@RequestBody Employee body) {
-		
 		try {
+			
+			Optional<Role> role = roleRepository.findById(4);
+			body.setRole(role.get());
+		
 			Employee employee = employeeRepository.save(body);
+			for(Skill skill: body.getSkills()) {
+				skill.setEmployee(employee);
+				skillRepository.save(skill);
+			}
 			return new ResponseEntity<>(employee, HttpStatus.CREATED);
 			
 		}catch (Exception e) {
-			return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>("Internal server error.", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-		
+	
 	}
-    
  
  @GetMapping("/employee/{employeeId}")
  public ResponseEntity<Object> getEmployeeDetail(@PathVariable Integer employeeId) {
